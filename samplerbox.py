@@ -15,7 +15,8 @@
 #########################################
 
 AUDIO_DEVICE_ID = 0                     # change this number to use another soundcard
-SAMPLES_DIR = "/media/"                       # The root directory containing the sample-sets. Example: "/media/" to look for samples on a USB stick / SD card
+SAMPLES_DIR = "/media/"
+DRUMKIT_DIR = "Drumkit"                       # The root directory containing the sample-sets. Example: "/media/" to look for samples on a USB stick / SD card
 USE_SERIALPORT_MIDI = True             # Set to True to enable MIDI IN via SerialPort (e.g. RaspberryPi's GPIO UART pins)
 USE_I2C_7SEGMENTDISPLAY = True         # Set to True to use a 7-segment display via I2C
 USE_BUTTONS = True                     # Set to True to use momentary buttons (connected to RaspberryPi's GPIO pins) to change preset
@@ -302,6 +303,7 @@ def ActuallyLoad():
     globaltranspose = 0
 
     samplesdir = SAMPLES_DIR if os.listdir(SAMPLES_DIR) else '.'      # use current folder (containing 0 Saw) if no user media containing samples has been found
+    drumkitdir = os.path.join(SAMPLES_DIR, DRUMKIT_DIR) if os.path.isdir(os.path.join(SAMPLES_DIR, DRUMKIT_DIR)) else os.path.join('.', DRUMKIT_DIR)      # use current folder (Drumkit) if no user media containing Drumkit has been found
 
     basename = next((f for f in os.listdir(samplesdir) if f.startswith("%d " % preset)), None)      # or next(glob.iglob("blah*"), None)
     if basename:
@@ -313,14 +315,14 @@ def ActuallyLoad():
     print 'Preset loading: %s (%s)' % (preset, basename)
     display("L%03d" % preset)
 
-    # Load if Drumsaples is empty
-    if not bool(drumsamples):
-        for midinote in range(0, 15):
+    # Load if Drumsamples is empty and Drumkit Directory exists
+    if not bool(drumsamples) and os.path.isdir(drumkitdir):
+        for midipadnote in range(0, 15):
             if LoadingInterrupt:
                 return
-            file = os.path.join(dirname, "%d.wav" % midinote)
+            file = os.path.join(drumkitdir, "%d.wav" % midipadnote) #Loads from Drumkit dir
             if os.path.isfile(file):
-                samples[midinote, 127] = Sound(file, midinote, 127) # Setting Vlocity to 127 as it is always 127 for drums
+                samples[midipadnote, 127] = Sound(file, midipadnote, 127) # Setting Vlocity to 127 as it is always 127 for drums
 
     definitionfname = os.path.join(dirname, "definition.txt")
     if os.path.isfile(definitionfname):
