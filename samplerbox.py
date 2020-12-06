@@ -348,7 +348,7 @@ def ActuallyLoad():
                 samples[midinote, 127] = Sound(file, midinote, 127)
 
     # Load Drumsamples into note 0 - 15
-    if not bool(drumsamples) and os.path.isdir(drumkitdir):
+    if os.path.isdir(drumkitdir):
         for midipadnote in range(0, 16):
             if LoadingInterrupt:
                 return
