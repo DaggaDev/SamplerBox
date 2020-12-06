@@ -322,7 +322,7 @@ def ActuallyLoad():
                 return
             file = os.path.join(drumkitdir, "%d.wav" % midipadnote) #Loads from Drumkit dir
             if os.path.isfile(file):
-                samples[midipadnote, 127] = Sound(file, midipadnote, 127) # Setting Vlocity to 127 as it is always 127 for drums
+                drumsamples[midipadnote, 127] = Sound(file, midipadnote, 127) # Setting Vlocity to 127 as it is always 127 for drums
 
     definitionfname = os.path.join(dirname, "definition.txt")
     if os.path.isfile(definitionfname):
