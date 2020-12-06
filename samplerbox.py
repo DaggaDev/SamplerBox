@@ -162,7 +162,6 @@ FADEOUT = numpy.append(FADEOUT, numpy.zeros(FADEOUTLENGTH, numpy.float32)).astyp
 SPEED = numpy.power(2, numpy.arange(0.0, 84.0)/12).astype(numpy.float32)
 
 samples = {}            # Main instrument loads here, cleared and reloaded on every instrument change
-drumsamples = {}        # Drumkit loads here, loaded on startup
 playingnotes = {}
 sustainplayingnotes = []
 sustain = False
@@ -214,17 +213,10 @@ def MidiCallback(message, time_stamp):
     if messagetype == 9 and velocity == 0:
         messagetype = 8
 
-    if messagetype == 9 and (note > 15):    # Note on for Instrument
+    if messagetype == 9:
         midinote += globaltranspose
         try:
             playingnotes.setdefault(midinote, []).append(samples[midinote, velocity].play(midinote))
-        except:
-            pass
-
-    if messagetype == 9 and (note < 16):    # Note on for Drum
-        midinote += globaltranspose
-        try:
-            playingnotes.setdefault(midinote, []).append(drumsamples[midinote, velocity].play(midinote))
         except:
             pass
 
@@ -294,7 +286,6 @@ NOTES = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
 def ActuallyLoad():
     global preset
     global samples
-    global drumsamples
     global playingsounds
     global globalvolume, globaltranspose
     playingsounds = []
@@ -314,15 +305,6 @@ def ActuallyLoad():
         return
     print 'Preset loading: %s (%s)' % (preset, basename)
     display("L%03d" % preset)
-
-    # Load if Drumsamples is empty and Drumkit Directory exists
-    if not bool(drumsamples) and os.path.isdir(drumkitdir):
-        for midipadnote in range(0, 16):
-            if LoadingInterrupt:
-                return
-            file = os.path.join(drumkitdir, "%d.wav" % midipadnote) #Loads from Drumkit dir
-            if os.path.isfile(file):
-                drumsamples[midipadnote, 127] = Sound(file, midipadnote, 127) # Setting Vlocity to 127 as it is always 127 for drums
 
     definitionfname = os.path.join(dirname, "definition.txt")
     if os.path.isfile(definitionfname):
@@ -364,6 +346,15 @@ def ActuallyLoad():
             file = os.path.join(dirname, "%d.wav" % midinote)
             if os.path.isfile(file):
                 samples[midinote, 127] = Sound(file, midinote, 127)
+
+    # Load Drumsamples into note 0 - 15
+    if not bool(drumsamples) and os.path.isdir(drumkitdir):
+        for midipadnote in range(0, 16):
+            if LoadingInterrupt:
+                return
+            file = os.path.join(drumkitdir, "%d.wav" % midipadnote) #Loads from Drumkit dir
+            if os.path.isfile(file):
+                samples[midipadnote, 127] = Sound(file, midipadnote, 127) # Setting Vlocity to 127 as it is always 127 for drums
 
     initial_keys = set(samples.keys())
     for midinote in xrange(128):
