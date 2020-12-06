@@ -317,7 +317,7 @@ def ActuallyLoad():
 
     # Load if Drumsamples is empty and Drumkit Directory exists
     if not bool(drumsamples) and os.path.isdir(drumkitdir):
-        for midipadnote in range(0, 15):
+        for midipadnote in range(0, 16):
             if LoadingInterrupt:
                 return
             file = os.path.join(drumkitdir, "%d.wav" % midipadnote) #Loads from Drumkit dir
