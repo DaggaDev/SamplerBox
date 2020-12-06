@@ -160,7 +160,8 @@ FADEOUT = numpy.power(FADEOUT, 6)
 FADEOUT = numpy.append(FADEOUT, numpy.zeros(FADEOUTLENGTH, numpy.float32)).astype(numpy.float32)
 SPEED = numpy.power(2, numpy.arange(0.0, 84.0)/12).astype(numpy.float32)
 
-samples = {}
+samples = {}            # Main instrument loads here, cleared and reloaded on every instrument change
+drumsamples = {}        # Drumkit loads here, loaded on startup
 playingnotes = {}
 sustainplayingnotes = []
 sustain = False
@@ -202,7 +203,7 @@ def MidiCallback(message, time_stamp):
     global playingnotes, sustain, sustainplayingnotes
     global preset
     global globalvolume
-#    MidiMessagePrint(message) 
+#    MidiMessagePrint(message) #Enable this to see Midi messages printed to std out
     messagetype = message[0] >> 4
     messagechannel = (message[0] & 15) + 1
     note = message[1] if len(message) > 1 else None
@@ -212,10 +213,17 @@ def MidiCallback(message, time_stamp):
     if messagetype == 9 and velocity == 0:
         messagetype = 8
 
-    if messagetype == 9:    # Note on
+    if messagetype == 9 and (note > 15):    # Note on for Instrument
         midinote += globaltranspose
         try:
             playingnotes.setdefault(midinote, []).append(samples[midinote, velocity].play(midinote))
+        except:
+            pass
+
+    if messagetype == 9 and (note < 16):    # Note on for Drum
+        midinote += globaltranspose
+        try:
+            playingnotes.setdefault(midinote, []).append(drumsamples[midinote, velocity].play(midinote))
         except:
             pass
 
@@ -285,10 +293,11 @@ NOTES = ["c", "c#", "d", "d#", "e", "f", "f#", "g", "g#", "a", "a#", "b"]
 def ActuallyLoad():
     global preset
     global samples
+    global drumsamples
     global playingsounds
     global globalvolume, globaltranspose
     playingsounds = []
-    samples = {}
+    samples = {} # This clears the samples
     globalvolume = 10 ** (-12.0/20)  # -12dB default global volume
     globaltranspose = 0
 
@@ -303,6 +312,15 @@ def ActuallyLoad():
         return
     print 'Preset loading: %s (%s)' % (preset, basename)
     display("L%03d" % preset)
+
+    # Load if Drumsaples is empty
+    if not bool(drumsamples):
+        for midinote in range(0, 15):
+            if LoadingInterrupt:
+                return
+            file = os.path.join(dirname, "%d.wav" % midinote)
+            if os.path.isfile(file):
+                samples[midinote, 127] = Sound(file, midinote, 127) # Setting Vlocity to 127 as it is always 127 for drums
 
     definitionfname = os.path.join(dirname, "definition.txt")
     if os.path.isfile(definitionfname):

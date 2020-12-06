@@ -7,12 +7,12 @@ Big thanks to Joseph Basquin for the original SamplerBox Project.
 While the simplistic philosophy behind SamplerBox (https://www.samplerbox.org/faq) is what draw me to that project, I wanted to expand on the functionality. 
 
 Added Functionality:
-- Midi Debug output (when one needs to see Midi packages with actual datastream)
+- Added MidiMessagePrint(message) to output the midimessage as bits and dec (when one needs to see Midi packages with actual datastream, for debugging purposes)
 - As the M-Audio don't have Program +/Program - commands, changing instruments up/down is mapped to button 1 and 2
 - Master Volume is mapped to the Master Slider
+- Drum kit on the pads (lowest octave, same Midi channel, drums are set to note 0-15)
 
 Comming Functionality / Ideas / Thoughts
-- Drum kit on the pads
 - Preset Beats
 - Record/playback of sequences
 - Add Samples to the SSD Card
